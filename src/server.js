@@ -1,6 +1,6 @@
 import express from "express";
 import http from "http";
-import {Server} from "socket.io";
+import { Server } from "socket.io";
 
 const app = express();
 
@@ -28,11 +28,19 @@ wsServer.on("connection", (socket) => {
     });
 
     socket.on("new_message", (msg, roomName) => {
-        socket.to(roomName).emit("new_message", `${socket.nickname}: ${msg}`);
+        const currentTime = getCurrentTime();
+        socket.to(roomName).emit("new_message", socket.nickname, msg, currentTime);
     });
 
     socket.on("nickname", nickname => (socket["nickname"] = nickname));
 
 });
+
+function getCurrentTime() {
+    const now = new Date();
+    const hours = now.getHours().toString().padStart(2, '0');
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
+}
 
 httpServer.listen(3002, handleListen); 
