@@ -8,7 +8,12 @@ const handleListen = () => console.log('Listening on http://localhost:3002');
 
 const httpServer = http.createServer(app);
 
-const wsServer = new Server(httpServer);
+const wsServer = new Server(httpServer, {
+    cors: {
+      origin: "*",
+      methods: ["GET", "POST"]
+    }
+  });
 
 wsServer.on("connection", (socket) => {
 
