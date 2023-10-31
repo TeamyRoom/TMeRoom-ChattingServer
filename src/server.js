@@ -15,9 +15,12 @@ const wsServer = new Server(httpServer, {
     }
   });
 
+var members = new Map();
+
 wsServer.on("connection", (socket) => {
 
     socket["nickname"] = "익명";
+    socket["roomname"] = "임시";
 
     socket.onAny((event) => {
         console.log(`Socket Event: ${event}`);
@@ -25,16 +28,32 @@ wsServer.on("connection", (socket) => {
 
     socket.on("enter_room", (roomName) => {
         socket.join(roomName);
-        socket.to(roomName).emit("welcome", socket.nickname);
+        socket["roomname"] =  roomName;
+        if(!members.has(roomName)) {
+            let memberList = [];
+            memberList.push(socket.nickname);
+            members.set(socket.roomname, memberList);
+        }
+        else {
+            members.get(socket.roomname).push(socket.nickname);
+        }
+        socket.emit("members", members.get(socket.roomname));
+        socket.to(socket.roomname).emit("welcome", socket.nickname, members.get(socket.roomname));
     });
 
     socket.on("disconnecting", () => {
-        socket.rooms.forEach(room => socket.to(room).emit("bye", socket.nickname));
+        for(let i = 0; i < members.get(socket.roomname).length; i++) {
+            if(members.get(socket.roomname)[i] === socket.nickname) {
+                members.get(socket.roomname).splice(i, 1);
+                break;
+            }
+        }
+        socket.to(socket.roomname).emit("bye", socket.nickname, members.get(socket.roomname));
     });
 
-    socket.on("new_message", (msg, roomName) => {
+    socket.on("new_message", (msg) => {
         const currentTime = getCurrentTime();
-        socket.to(roomName).emit("new_message", socket.nickname, msg, currentTime);
+        socket.to(socket.roomname).emit("new_message", socket.nickname, msg, currentTime);
     });
 
     socket.on("nickname", nickname => (socket["nickname"] = nickname));
