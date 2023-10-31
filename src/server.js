@@ -48,6 +48,7 @@ wsServer.on("connection", (socket) => {
                 break;
             }
         }
+        if(members.get(socket.roomname) === 0) members.delete(socket.roomname);
         socket.to(socket.roomname).emit("bye", socket.nickname, members.get(socket.roomname));
     });
 
