@@ -10,10 +10,10 @@ const httpServer = http.createServer(app);
 
 const wsServer = new Server(httpServer, {
     cors: {
-      origin: "*",
-      methods: ["GET", "POST"]
+        origin: "*",
+        methods: ["GET", "POST"]
     }
-  });
+});
 
 var members = new Map();
 
@@ -28,8 +28,8 @@ wsServer.on("connection", (socket) => {
 
     socket.on("enter_room", (roomName) => {
         socket.join(roomName);
-        socket["roomname"] =  roomName;
-        if(!members.has(roomName)) {
+        socket["roomname"] = roomName;
+        if (!members.has(roomName)) {
             let memberList = [];
             memberList.push(socket.nickname);
             members.set(socket.roomname, memberList);
@@ -43,14 +43,14 @@ wsServer.on("connection", (socket) => {
 
     socket.on("disconnecting", () => {
 
-        if(members.has(socket.roomName)) {
-            for(let i = 0; i < members.get(socket.roomname).length; i++) {
-                if(members.get(socket.roomname)[i] === socket.nickname) {
+        if (members.has(socket.roomName)) {
+            for (let i = 0; i < members.get(socket.roomname).length; i++) {
+                if (members.get(socket.roomname)[i] === socket.nickname) {
                     members.get(socket.roomname).splice(i, 1);
                     break;
                 }
             }
-            if(members.get(socket.roomname) === 0) members.delete(socket.roomname);
+            if (members.get(socket.roomname) === 0) members.delete(socket.roomname);
             socket.to(socket.roomname).emit("bye", socket.nickname, members.get(socket.roomname));
         }
     });
@@ -65,9 +65,14 @@ wsServer.on("connection", (socket) => {
 });
 
 function getCurrentTime() {
+    const koreanTimezoneOffset = 9 * 60;
     const now = new Date();
-    const hours = now.getHours().toString().padStart(2, '0');
-    const minutes = now.getMinutes().toString().padStart(2, '0');
+
+    now.setMinutes(now.getMinutes() + koreanTimezoneOffset);
+
+    const hours = now.getUTCHours().toString().padStart(2, '0');
+    const minutes = now.getUTCMinutes().toString().padStart(2, '0');
+
     return `${hours}:${minutes}`;
 }
 
