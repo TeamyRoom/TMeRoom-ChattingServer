@@ -42,14 +42,17 @@ wsServer.on("connection", (socket) => {
     });
 
     socket.on("disconnecting", () => {
-        for(let i = 0; i < members.get(socket.roomname).length; i++) {
-            if(members.get(socket.roomname)[i] === socket.nickname) {
-                members.get(socket.roomname).splice(i, 1);
-                break;
+
+        if(members.has(socket.roomName)) {
+            for(let i = 0; i < members.get(socket.roomname).length; i++) {
+                if(members.get(socket.roomname)[i] === socket.nickname) {
+                    members.get(socket.roomname).splice(i, 1);
+                    break;
+                }
             }
+            if(members.get(socket.roomname) === 0) members.delete(socket.roomname);
+            socket.to(socket.roomname).emit("bye", socket.nickname, members.get(socket.roomname));
         }
-        if(members.get(socket.roomname) === 0) members.delete(socket.roomname);
-        socket.to(socket.roomname).emit("bye", socket.nickname, members.get(socket.roomname));
     });
 
     socket.on("new_message", (msg) => {
